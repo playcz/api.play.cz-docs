@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
+import { unified } from '@astrojs/markdown-remark';
 import { visit } from 'unist-util-visit';
 
 // Custom remark plugin to rewrite links ending with .md to their clean route
@@ -34,7 +35,9 @@ function remarkRewriteMdLinks() {
 export default defineConfig({
   integrations: [react()],
   markdown: {
-    remarkPlugins: [remarkRewriteMdLinks],
+    processor: unified({
+      remarkPlugins: [remarkRewriteMdLinks],
+    }),
     shikiConfig: {
       theme: 'github-dark',
       wrap: true
