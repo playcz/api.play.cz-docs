@@ -145,6 +145,16 @@ const displayTitle = title === 'Home' || title === 'API.PLAY.CZ' ? 'API.PLAY.CZ 
         color-scheme: light dark;
       }
 
+      :root[data-theme="light"],
+      html[data-theme="light"] {
+        color-scheme: light;
+      }
+
+      :root[data-theme="dark"],
+      html[data-theme="dark"] {
+        color-scheme: dark;
+      }
+
       /* Base Resets */
       * {
         box-sizing: border-box;
