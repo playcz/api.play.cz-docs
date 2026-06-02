@@ -1,0 +1,86 @@
+<button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" title="Přepnout tmavý/světlý režim">
+  <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"></circle>
+    <path d="M12 2v2"></path>
+    <path d="M12 20v2"></path>
+    <path d="m4.93 4.93 1.41 1.41"></path>
+    <path d="m17.66 17.66 1.41 1.41"></path>
+    <path d="M2 12h2"></path>
+    <path d="M20 12h2"></path>
+    <path d="m6.34 17.66-1.41 1.41"></path>
+    <path d="m19.07 4.93-1.41 1.41"></path>
+  </svg>
+  <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+  </svg>
+</button>
+
+<style>
+  .theme-toggle {
+    background: transparent;
+    border: 1px solid light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.15));
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: light-dark(var(--color-text-muted-light), var(--color-text-muted-dark));
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
+  }
+
+  .theme-toggle:hover:not(:disabled) {
+    background: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.05));
+    color: light-dark(var(--color-primary-light), var(--color-primary-dark));
+    transform: scale(1.05);
+  }
+
+  .theme-toggle:focus-visible {
+    outline: 2px solid light-dark(var(--color-primary-light), var(--color-primary-dark));
+    outline-offset: 2px;
+  }
+
+  /* Show sun in dark mode, moon in light mode */
+  :global(html[data-theme="light"]) .sun {
+    display: none;
+  }
+  :global(html[data-theme="light"]) .moon {
+    display: block;
+  }
+
+  :global(html[data-theme="dark"]) .sun {
+    display: block;
+  }
+  :global(html[data-theme="dark"]) .moon {
+    display: none;
+  }
+</style>
+
+<script>
+  function setupTheme() {
+    const toggle = document.getElementById('theme-toggle');
+    if (!toggle) return;
+
+    toggle.addEventListener('click', () => {
+      const html = document.documentElement;
+      const meta = document.querySelector('meta[name="color-scheme"]');
+      const currentTheme = html.getAttribute('data-theme') || 
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      html.setAttribute('data-theme', newTheme);
+      if (meta) {
+        meta.setAttribute('content', newTheme);
+      }
+      localStorage.setItem('color-scheme', newTheme);
+    });
+  }
+
+  // Runs on initial load
+  setupTheme();
+  
+  // Runs on View Transitions navigation
+  document.addEventListener('astro:after-swap', setupTheme);
+</script>

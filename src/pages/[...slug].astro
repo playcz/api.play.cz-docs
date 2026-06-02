@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+import DocLayout from '../layouts/DocLayout.astro';
+
+export async function getStaticPaths() {
+  const docs = await getCollection('docs');
+  return docs.map((entry) => {
+    // Map Home.md (slug 'home') to the root route '/'
+    const slug = entry.slug === 'home' ? undefined : entry.slug;
+    return {
+      params: { slug },
+      props: { entry },
+    };
+  });
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await entry.render();
+
+// Extract the page title from the first heading or fallback to the file ID
+let pageTitle = '';
+const firstHeading = headings && headings.length > 0 ? headings[0] : null;
+if (firstHeading) {
+  pageTitle = firstHeading.text;
+} else {
+  pageTitle = entry.id.replace(/\.[^/.]+$/, "");
+}
+---
+
+<DocLayout title={pageTitle} headings={headings}>
+  <Content />
+</DocLayout>

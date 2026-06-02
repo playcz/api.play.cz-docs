@@ -1,0 +1,601 @@
+---
+import { ViewTransitions } from 'astro:transitions';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import Sidebar from '../components/Sidebar.astro';
+
+interface Props {
+  title: string;
+  headings?: Array<{ depth: number; slug: string; text: string }>;
+}
+
+const { title, headings } = Astro.props;
+const displayTitle = title === 'Home' || title === 'API.PLAY.CZ' ? 'API.PLAY.CZ Dokumentace' : `${title} | API.PLAY.CZ`;
+---
+
+<!doctype html>
+<html lang="cs" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{displayTitle}</title>
+    <meta name="description" content="Privátní rozhraní API.PLAY.CZ. Technická dokumentace, integrace přehrávače a specifikace API funkcí." />
+    <meta name="color-scheme" content="light dark" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    
+    <!-- View Transitions -->
+    <ViewTransitions />
+
+    <!-- Anti-FOUC script -->
+    <script is:inline>
+      (() => {
+        const colorScheme = localStorage.getItem("color-scheme");
+        const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = colorScheme || (systemDark ? "dark" : "light");
+        
+        document.documentElement.setAttribute("data-theme", theme);
+        const meta = document.querySelector('meta[name="color-scheme"]');
+        if (meta) {
+          meta.content = theme === 'dark' ? 'dark' : 'light';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="app-layout">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="header-left">
+          <button id="mobile-sidebar-toggle" class="mobile-toggle" aria-label="Toggle navigation">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" x2="20" y1="12" y2="12"></line>
+              <line x1="4" x2="20" y1="6" y2="6"></line>
+              <line x1="4" x2="20" y1="18" y2="18"></line>
+            </svg>
+          </button>
+          <a href="/" class="app-logo">
+            <span class="logo-accent">PLAY.CZ</span> <span class="logo-text">API Docs</span>
+          </a>
+        </div>
+        <div class="header-right">
+          <ThemeToggle />
+        </div>
+      </header>
+
+      <!-- Sidebar Backdrop for Mobile -->
+      <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+      <!-- Main Layout Body -->
+      <div class="main-container">
+        <div id="sidebar-wrapper" class="sidebar-wrapper">
+          <Sidebar />
+        </div>
+        
+        <div class="content-wrapper scroller">
+          <div class="content-columns">
+            <main class="content-main">
+              <article class="markdown-body">
+                <slot />
+              </article>
+            </main>
+            
+            {headings && headings.length > 0 && (
+              <aside class="toc-aside">
+                <div class="toc-container">
+                  <h4 class="toc-title">Na této stránce</h4>
+                  <nav class="toc-nav">
+                    <ul>
+                      {headings.filter(h => h.depth >= 2 && h.depth <= 3).map(h => (
+                        <li class={`toc-depth-${h.depth}`}>
+                          <a href={`#${h.slug}`}>{h.text}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                </div>
+              </aside>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <style is:global>
+      /* Design Tokens */
+      :root {
+        --color-primary-light: #2563eb;
+        --color-primary-dark: #00e5ff;
+        
+        --color-bg-light: #f8fafc;
+        --color-bg-dark: #070a13;
+        
+        --color-sidebar-bg-light: #f1f5f9;
+        --color-sidebar-bg-dark: #0c111e;
+        
+        --color-surface-light: #ffffff;
+        --color-surface-dark: #101726;
+        
+        --color-text-light: #0f172a;
+        --color-text-dark: #f1f5f9;
+        
+        --color-text-muted-light: #64748b;
+        --color-text-muted-dark: #94a3b8;
+        
+        --color-border-light: #e2e8f0;
+        --color-border-dark: #1e293b;
+        
+        --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+        --font-mono: 'JetBrains Mono', Consolas, monospace;
+        
+        --header-height: 60px;
+        --sidebar-width: 290px;
+        
+        /* Resolver */
+        --color-primary: light-dark(var(--color-primary-light), var(--color-primary-dark));
+        --color-bg: light-dark(var(--color-bg-light), var(--color-bg-dark));
+        --color-sidebar-bg: light-dark(var(--color-sidebar-bg-light), var(--color-sidebar-bg-dark));
+        --color-surface: light-dark(var(--color-surface-light), var(--color-surface-dark));
+        --color-text: light-dark(var(--color-text-light), var(--color-text-dark));
+        --color-text-muted: light-dark(var(--color-text-muted-light), var(--color-text-muted-dark));
+        --color-border: light-dark(var(--color-border-light), var(--color-border-dark));
+        
+        color-scheme: light dark;
+      }
+
+      /* Base Resets */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html, body {
+        height: 100%;
+        font-family: var(--font-sans);
+        background-color: var(--color-bg);
+        color: var(--color-text);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow: hidden;
+      }
+
+      /* App Shell Layout */
+      .app-layout {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      .app-header {
+        height: var(--header-height);
+        background-color: var(--color-surface);
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1.5rem;
+        z-index: 50;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .mobile-toggle {
+        display: none;
+        background: transparent;
+        border: none;
+        color: var(--color-text);
+        cursor: pointer;
+        padding: 0.25rem;
+      }
+
+      .app-logo {
+        font-size: 1.15rem;
+        font-weight: 700;
+        text-decoration: none;
+        color: var(--color-text);
+        letter-spacing: -0.01em;
+      }
+
+      .logo-accent {
+        color: var(--color-primary);
+        background: light-dark(rgba(37, 99, 235, 0.08), rgba(0, 229, 255, 0.08));
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
+        font-weight: 800;
+      }
+
+      .logo-text {
+        font-weight: 500;
+        opacity: 0.85;
+      }
+
+      .main-container {
+        display: flex;
+        flex: 1;
+        height: calc(100vh - var(--header-height));
+        overflow: hidden;
+      }
+
+      .sidebar-wrapper {
+        width: var(--sidebar-width);
+        flex-shrink: 0;
+        height: 100%;
+      }
+
+      .content-wrapper {
+        flex: 1;
+        overflow-y: auto;
+        height: 100%;
+        scrollbar-width: thin;
+        scrollbar-color: light-dark(#ccc, #444) transparent;
+      }
+
+      /* Custom scrollbar fallback if needed */
+      @supports not (scrollbar-color: auto) {
+        .scroller::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        .scroller::-webkit-scrollbar-thumb {
+          background: light-dark(#ccc, #444);
+          border-radius: 4px;
+        }
+        .scroller::-webkit-scrollbar-track {
+          background: transparent;
+        }
+      }
+
+      .content-columns {
+        display: flex;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2.5rem 2rem;
+        gap: 3rem;
+      }
+
+      .content-main {
+        flex: 1;
+        min-width: 0; /* Prevents flex items from overflowing */
+      }
+
+      /* TOC Styling */
+      .toc-aside {
+        width: 240px;
+        flex-shrink: 0;
+        display: block;
+      }
+
+      @media (max-width: 1100px) {
+        .toc-aside {
+          display: none;
+        }
+      }
+
+      .toc-container {
+        position: sticky;
+        top: 2rem;
+      }
+
+      .toc-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-text-muted);
+        margin-bottom: 0.75rem;
+      }
+
+      .toc-nav ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        border-left: 1px solid var(--color-border);
+      }
+
+      .toc-nav li {
+        margin: 0;
+      }
+
+      .toc-nav a {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        text-decoration: none;
+        transition: color 0.15s, border-color 0.15s;
+        line-height: 1.4;
+        padding-left: 1rem;
+        margin-left: -1px;
+        border-left: 1px solid transparent;
+      }
+
+      .toc-nav a:hover {
+        color: var(--color-text);
+      }
+
+      .toc-nav a.active {
+        color: var(--color-primary);
+        font-weight: 500;
+        border-left-color: var(--color-primary);
+      }
+
+      .toc-depth-3 a {
+        padding-left: 1.75rem;
+      }
+
+      /* Mobile styling */
+      @media (max-width: 1023px) {
+        .mobile-toggle {
+          display: block;
+        }
+
+        .sidebar-wrapper {
+          position: fixed;
+          top: var(--header-height);
+          left: 0;
+          width: 280px;
+          height: calc(100vh - var(--header-height));
+          z-index: 100;
+          transform: translateX(-100%);
+          transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-wrapper.open {
+          transform: translateX(0);
+        }
+
+        .sidebar-backdrop {
+          display: none;
+          position: fixed;
+          top: var(--header-height);
+          left: 0;
+          width: 100vw;
+          height: calc(100vh - var(--header-height));
+          background-color: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(2px);
+          z-index: 99;
+        }
+
+        .sidebar-backdrop.open {
+          display: block;
+        }
+
+        .content-columns {
+          padding: 1.5rem 1.25rem;
+        }
+      }
+
+      /* Markdown Content Styling */
+      .markdown-body {
+        line-height: 1.7;
+        font-size: 1rem;
+      }
+
+      .markdown-body h1 {
+        font-size: 2.25rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 1.5rem;
+        line-height: 1.25;
+        border-bottom: 1px solid var(--color-border);
+        padding-bottom: 0.5rem;
+      }
+
+      .markdown-body h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        line-height: 1.3;
+        border-bottom: 1px solid var(--color-border);
+        padding-bottom: 0.35rem;
+      }
+
+      .markdown-body h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-top: 1.75rem;
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+      }
+
+      .markdown-body p {
+        margin-bottom: 1.25rem;
+        color: light-dark(#334155, #cbd5e1);
+      }
+
+      .markdown-body a {
+        color: var(--color-primary);
+        text-decoration: none;
+        font-weight: 500;
+        border-bottom: 1px dashed transparent;
+        transition: border-color 0.15s;
+      }
+
+      .markdown-body a:hover {
+        border-bottom-style: solid;
+        border-bottom-color: var(--color-primary);
+      }
+
+      .markdown-body ul, .markdown-body ol {
+        margin-bottom: 1.25rem;
+        padding-left: 1.5rem;
+      }
+
+      .markdown-body li {
+        margin-bottom: 0.4rem;
+        color: light-dark(#334155, #cbd5e1);
+      }
+
+      /* Blockquotes / Warning callouts */
+      .markdown-body blockquote, .markdown-body pre.astro-code {
+        margin: 1.5rem 0;
+      }
+
+      .markdown-body blockquote {
+        padding: 0.75rem 1.25rem;
+        border-left: 4px solid var(--color-primary);
+        background-color: light-dark(rgba(0, 0, 0, 0.02), rgba(255, 255, 255, 0.02));
+        border-radius: 0 8px 8px 0;
+      }
+
+      /* Custom warning style for the Home.md note */
+      .markdown-body pre.code-text-block,
+      .markdown-body blockquote:has(p:contains("privátní")), 
+      .markdown-body p:has(> code:only-child) {
+        /* Styled below using explicit selectors */
+      }
+
+      /* Format the privátní API text block on Home.md */
+      .markdown-body pre {
+        background-color: light-dark(rgba(0, 0, 0, 0.02), #0e1320);
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+      }
+
+      /* Style text block specifically as a info alert */
+      .markdown-body pre:not(.astro-code) {
+        border-left: 4px solid #f59e0b; /* Amber warning */
+        background-color: light-dark(#fffbeb, #181410);
+        color: light-dark(#b45309, #fcd34d);
+        font-family: var(--font-sans);
+        line-height: 1.6;
+        font-size: 0.9rem;
+      }
+
+      /* Shiki Syntax Highlighting Customization */
+      .markdown-body pre.astro-code {
+        border: 1px solid var(--color-border);
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        padding: 1.25rem;
+      }
+
+      /* Inline code styling */
+      .markdown-body :not(pre) > code {
+        background-color: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.06));
+        color: light-dark(#b91c1c, #f43f5e);
+        padding: 0.15rem 0.35rem;
+        border-radius: 4px;
+        font-size: 0.85em;
+        font-family: var(--font-mono);
+      }
+
+      /* Tables styling - Responsive and Elegant */
+      .markdown-body table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        border-collapse: collapse;
+        margin: 1.75rem 0;
+        font-size: 0.875rem;
+        border-radius: 8px;
+        border: 1px solid var(--color-border);
+      }
+
+      .markdown-body th {
+        background-color: light-dark(#f1f5f9, #0f1624);
+        color: var(--color-text);
+        font-weight: 600;
+        text-align: left;
+        padding: 0.75rem 1rem;
+        border-bottom: 2px solid var(--color-border);
+      }
+
+      .markdown-body td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--color-border);
+        color: light-dark(#334155, #cbd5e1);
+      }
+
+      .markdown-body tr:last-child td {
+        border-bottom: none;
+      }
+
+      .markdown-body tr:nth-child(even) {
+        background-color: light-dark(rgba(0, 0, 0, 0.01), rgba(255, 255, 255, 0.01));
+      }
+    </style>
+
+    <!-- Client-side navigation & scroll-spy scripts -->
+    <script>
+      function setupLayout() {
+        // --- Mobile Menu Toggle ---
+        const toggle = document.getElementById('mobile-sidebar-toggle');
+        const sidebar = document.getElementById('sidebar-wrapper');
+        const backdrop = document.getElementById('sidebar-backdrop');
+
+        function toggleSidebar() {
+          sidebar?.classList.toggle('open');
+          backdrop?.classList.toggle('open');
+        }
+
+        function closeSidebar() {
+          sidebar?.classList.remove('open');
+          backdrop?.classList.remove('open');
+        }
+
+        toggle?.addEventListener('click', toggleSidebar);
+        backdrop?.addEventListener('click', closeSidebar);
+
+        // Close sidebar on navigation link clicks (helpful on mobile)
+        const sidebarLinks = sidebar?.querySelectorAll('.nav-item');
+        sidebarLinks?.forEach(link => {
+          link.addEventListener('click', closeSidebar);
+        });
+
+        // --- Scroll Spy Table of Contents ---
+        const headings = Array.from(document.querySelectorAll('.markdown-body h2, .markdown-body h3'));
+        const tocLinks = document.querySelectorAll('.toc-nav a');
+        if (headings.length === 0 || tocLinks.length === 0) return;
+
+        const activeClass = 'active';
+        let activeId = '';
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              activeId = entry.target.id;
+            }
+          });
+
+          if (activeId) {
+            tocLinks.forEach(link => {
+              const href = link.getAttribute('href');
+              if (href === `#${activeId}`) {
+                link.classList.add(activeClass);
+              } else {
+                link.classList.remove(activeClass);
+              }
+            });
+          }
+        }, {
+          rootMargin: '-80px 0px -75% 0px' // Trigger when heading is in upper region
+        });
+
+        headings.forEach(heading => observer.observe(heading));
+      }
+
+      // Run on initial load
+      setupLayout();
+
+      // Run after page swaps (Astro View Transitions)
+      document.addEventListener('astro:after-swap', setupLayout);
+    </script>
+  </body>
+</html>
